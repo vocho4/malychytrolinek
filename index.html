@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Malý Chytrolínek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Nunito+Sans:wght@400;700&display=swap">
+<style>
+/* Layout: jedna centrovaná scéna, sova nahoře, věta pod ní, menu vyjede jako panel. */
+:root{
+  --bg:#eef0f6; --ink:#141a35; --muted:#5b6385; --surface:#ffffff; --line:#d5d9e8;
+  --accent:#2a3fa8; --on-accent:#ffffff; --gold:#e9a800; --owl:#2a3fa8; --owl2:#5568d6; --belly:#f4f1ff;
+  --f-display:"Bricolage Grotesque","Nunito Sans",system-ui,sans-serif;
+  --f-body:"Nunito Sans",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1230; --ink:#eef0ff; --muted:#9aa3d0; --surface:#171d45; --line:#2a3166;
+  --accent:#f2b705; --on-accent:#141a35; --gold:#f2b705; --owl:#5568d6; --owl2:#8795ee; --belly:#e9ecff; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e1230; --ink:#eef0ff; --muted:#9aa3d0; --surface:#171d45; --line:#2a3166;
+  --accent:#f2b705; --on-accent:#141a35; --gold:#f2b705; --owl:#5568d6; --owl2:#8795ee; --belly:#e9ecff; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.scene{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding-block:32px}
+.owl{width:min(52vw,220px);height:auto}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.7rem,6vw,2.6rem);line-height:1.15;margin:0;text-wrap:balance;max-width:22ch}
+.pw{font:inherit;color:var(--accent);background:none;border:0;border-bottom:3px dotted var(--accent);padding:0 2px;cursor:pointer;font-weight:800}
+.pw:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.hint{color:var(--muted);font-size:.95rem}
+.menu{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,14,40,.55);padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.menu[hidden]{display:none}
+.panel{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.panel h2{margin:0 0 4px;font-family:var(--f-display);font-size:1.2rem}
+.item{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:700;min-height:52px}
+a.item:hover{border-color:var(--accent)}
+.item.soon{color:var(--muted);font-weight:400;border-style:dashed}
+.tag{font-size:.8rem;border-radius:99px;padding:2px 10px;background:var(--accent);color:var(--on-accent);font-weight:700;white-space:nowrap}
+.close{align-self:flex-end;background:none;border:0;color:var(--muted);font:inherit;padding:6px 4px;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.owl{animation:bob 4s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px)}}}
+</style>
+</head>
+<body>
+<main class="scene">
+  <svg class="owl" viewBox="0 0 200 220" role="img" aria-label="Malá sova v promoční čepici">
+    <ellipse cx="100" cy="206" rx="56" ry="8" fill="var(--ink)" opacity=".12"/>
+    <path d="M46 120c0-44 24-72 54-72s54 28 54 72c0 42-24 78-54 78s-54-36-54-78z" fill="var(--owl)"/>
+    <path d="M30 132c-6 22 4 44 20 52-6-20-6-40-2-60z" fill="var(--owl2)"/>
+    <path d="M170 132c6 22-4 44-20 52 6-20 6-40 2-60z" fill="var(--owl2)"/>
+    <ellipse cx="100" cy="150" rx="34" ry="40" fill="var(--belly)"/>
+    <circle cx="76" cy="104" r="22" fill="var(--belly)"/>
+    <circle cx="124" cy="104" r="22" fill="var(--belly)"/>
+    <circle cx="78" cy="106" r="11" fill="var(--ink)"/>
+    <circle cx="122" cy="106" r="11" fill="var(--ink)"/>
+    <circle cx="81" cy="102" r="3.5" fill="#fff"/>
+    <circle cx="125" cy="102" r="3.5" fill="#fff"/>
+    <path d="M92 120l8 14 8-14z" fill="var(--gold)"/>
+    <path d="M70 168l6 10M84 172l4 10M116 172l-4 10M130 168l-6 10" stroke="var(--owl)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M52 62L100 38l48 24-48 24z" fill="var(--ink)"/>
+    <path d="M76 76v14c0 6 48 6 48 0V76l-24 12z" fill="var(--ink)"/>
+    <path d="M148 62v28" stroke="var(--gold)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="148" cy="94" r="5" fill="var(--gold)"/>
+    <path d="M80 196l-4 10h14l-2-10zM120 196l-2 10h14l-4-10z" fill="var(--gold)"/>
+  </svg>
+  <h1>Malý Chytrolínku, <button class="pw" id="open" aria-haspopup="dialog" aria-controls="menu">heslo</button> znáš?</h1>
+  <p class="hint">Klepni na heslo.</p>
+</main>
+
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+  <div class="panel">
+    <h2>Kam to bude?</h2>
+    <a class="item" href="dojo/">Dojo do Japonska <span class="tag">angličtina + japonština</span></a>
+    <div class="item soon">Připravujeme</div>
+    <div class="item soon">Připravujeme</div>
+    <button class="close" id="close">Zavřít</button>
+  </div>
+</div>
+
+<script>
+const menu=document.getElementById('menu'),openB=document.getElementById('open'),closeB=document.getElementById('close');
+const open=()=>{menu.hidden=false;closeB.focus();};
+const close=()=>{menu.hidden=true;openB.focus();};
+openB.addEventListener('click',open);
+closeB.addEventListener('click',close);
+menu.addEventListener('click',e=>{if(e.target===menu)close();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!menu.hidden)close();});
+</script>
+</body>
+</html>

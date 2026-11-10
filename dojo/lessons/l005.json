@@ -1,7 +1,8 @@
 {
  "id": "l005",
- "day": 5,
- "date": "2026-11-12",
+ "day": 3,
+ "bonus": true,
+ "date": "2026-11-08",
  "lang": "ja",
  "xp": 30,
  "title": "Řada S: さしすせそ",

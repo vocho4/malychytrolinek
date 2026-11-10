@@ -1,0 +1,179 @@
+{
+ "id": "l007",
+ "day": 1,
+ "date": "2026-11-08",
+ "lang": "en",
+ "xp": 30,
+ "title": "Základy: pozdravy a představení",
+ "hook": "Každá hra začíná tutoriálem. Tohle je tutoriál angličtiny: pozdravit, představit se a poděkovat.",
+ "intro": "Dnes se naučíš věty, které použiješ úplně všude, na letišti, v obchodě i při hraní online. Slova z kartiček si můžeš nechat přečíst. Zkus si je říkat nahlas.",
+ "vocab": [
+  {
+   "t": "Hello",
+   "r": "",
+   "c": "ahoj, dobrý den",
+   "lang": "en-US"
+  },
+  {
+   "t": "Goodbye",
+   "r": "",
+   "c": "na shledanou",
+   "lang": "en-US"
+  },
+  {
+   "t": "Please",
+   "r": "",
+   "c": "prosím",
+   "lang": "en-US"
+  },
+  {
+   "t": "Thank you",
+   "r": "",
+   "c": "děkuji",
+   "lang": "en-US"
+  },
+  {
+   "t": "Sorry",
+   "r": "",
+   "c": "promiň",
+   "lang": "en-US"
+  },
+  {
+   "t": "My name is …",
+   "r": "",
+   "c": "jmenuji se …",
+   "lang": "en-US"
+  },
+  {
+   "t": "How are you?",
+   "r": "",
+   "c": "jak se máš?",
+   "lang": "en-US"
+  },
+  {
+   "t": "I am fine",
+   "r": "",
+   "c": "mám se dobře",
+   "lang": "en-US"
+  },
+  {
+   "t": "Nice to meet you",
+   "r": "",
+   "c": "rád tě poznávám",
+   "lang": "en-US"
+  }
+ ],
+ "exercises": [
+  {
+   "t": "choice",
+   "q": "Potkáš kamaráda ve hře. Co řekneš jako první?",
+   "o": [
+    "Hello!",
+    "Goodbye!",
+    "Sorry!",
+    "Please!"
+   ],
+   "a": 0,
+   "e": "Hello je pozdrav, který funguje pořád."
+  },
+  {
+   "t": "choice",
+   "q": "Někdo ti podá pití. Co řekneš?",
+   "o": [
+    "Thank you!",
+    "Goodbye!",
+    "How are you?",
+    "My name is Pizza."
+   ],
+   "a": 0,
+   "e": ""
+  },
+  {
+   "t": "type",
+   "q": "Doplň: My ___ is Matěj. (jmenuji se)",
+   "a": [
+    "name"
+   ],
+   "e": "My name is … = jmenuji se …"
+  },
+  {
+   "t": "choice",
+   "q": "Co znamená „How are you?“",
+   "o": [
+    "Jak se máš?",
+    "Kdo jsi?",
+    "Kolik ti je?",
+    "Kde bydlíš?"
+   ],
+   "a": 0,
+   "e": ""
+  },
+  {
+   "t": "choice",
+   "q": "Správná odpověď na „How are you?“",
+   "o": [
+    "I am fine, thank you.",
+    "My name is fine.",
+    "Goodbye, please.",
+    "Nice, sorry."
+   ],
+   "a": 0,
+   "e": ""
+  },
+  {
+   "t": "type",
+   "q": "Napiš anglicky: Děkuji.",
+   "a": [
+    "thank you",
+    "thanks"
+   ],
+   "e": "Thanks je kratší a známější."
+  },
+  {
+   "t": "choice",
+   "q": "Šlápneš někomu na nohu. Co řekneš?",
+   "o": [
+    "Sorry!",
+    "Hello!",
+    "Please!",
+    "Goodbye!"
+   ],
+   "a": 0,
+   "e": ""
+  },
+  {
+   "t": "choice",
+   "q": "Pokémon Trainer se ti představí: „Nice to meet you.“ Co to znamená?",
+   "o": [
+    "Rád tě poznávám.",
+    "Mám hlad.",
+    "Kde je záchod?",
+    "Dobrou noc."
+   ],
+   "a": 0,
+   "e": ""
+  },
+  {
+   "t": "type",
+   "q": "Napiš anglicky: Jmenuji se Nikola.",
+   "a": [
+    "my name is nikola",
+    "i am nikola",
+    "i'm nikola"
+   ],
+   "e": "Můžeš říct i I am …"
+  },
+  {
+   "t": "choice",
+   "q": "Odcházíš ze hry. Co řekneš kamarádům?",
+   "o": [
+    "Goodbye!",
+    "Hello!",
+    "Please!",
+    "Sorry, hello!"
+   ],
+   "a": 0,
+   "e": "Nebo kratší: Bye!"
+  }
+ ]
+}

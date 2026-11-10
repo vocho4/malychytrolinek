@@ -1,6 +1,7 @@
 {
  "id": "l001",
  "day": 1,
+ "bonus": true,
  "date": "2026-11-08",
  "lang": "ja",
  "xp": 30,

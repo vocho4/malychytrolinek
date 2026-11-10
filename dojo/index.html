@@ -423,12 +423,12 @@ function runUI(ex, onDone){
   const KINDS = {
     case:{w:.8,h:.72,monster:false}, poop:{w:.62,h:.5,monster:false},
     blob:{w:.75,h:.6,monster:true},  ball:{w:.62,h:.62,monster:true},
-    tnt:{w:.62,h:.66,monster:false}, sushi:{w:.78,h:.42,monster:false}, buddha:{w:.6,h:.72,monster:false},
+    tnt:{w:.62,h:.66,monster:false}, sushi:{w:.78,h:.42,monster:false},
     apple:{w:.55,h:.58,monster:false}, bowl:{w:.8,h:.5,monster:false},
     oni:{w:.7,h:.8,monster:true}, chomp:{w:.66,h:.66,monster:true}, robot:{w:.6,h:.78,monster:true},
-    jachym:{w:.99,h:1.16,monster:false}, nikola:{w:.92,h:1.16,monster:false}, matej:{w:.8,h:.92,monster:false}, edita:{w:.84,h:.84,monster:false}
+    jachym:{w:.99,h:1.01,monster:false}, nikola:{w:.92,h:1.03,monster:false}, matej:{w:.8,h:.89,monster:false}, edita:{w:.84,h:.84,monster:false}
   };
-  const KLIST=['case','poop','blob','ball','tnt','sushi','buddha','apple','bowl','oni','chomp','robot','jachym','nikola','matej','jachym','nikola','matej','edita','edita'];
+  const KLIST=['case','poop','blob','ball','tnt','sushi','apple','bowl','oni','chomp','robot','jachym','nikola','matej','jachym','nikola','matej','edita','edita'];
   function spawn(){
     const k = KLIST[Math.floor(Math.random()*KLIST.length)], K=KINDS[k];
     obs.push({k, x:W+S, w:S*K.w*.5, h:S*K.h*.5, m:K.monster, ph:Math.random()*6, lift:0});
@@ -652,16 +652,6 @@ function runUI(ex, onDone){
       ctx.save(); F(); ctx.clip(); ctx.strokeStyle='rgba(255,235,220,.9)'; ctx.lineWidth=Math.max(2,Q*.03); for(const x of [-.3,-.08,.14,.36]){ ctx.beginPath(); ctx.moveTo(w*x-w*.1,-hh*.5); ctx.quadraticCurveTo(w*x,-hh*.2,w*x+w*.08,hh*.05); ctx.stroke(); } ctx.restore();
       ink(F,lw); hl(-w*.22,-hh*.32,w*.08,hh*.04);
       const N=()=>{ctx.beginPath(); ctx.rect(-w*.1,-hh*.35,w*.2,hh*.82);}; ctx.fillStyle='#1b2a1e'; N(); ctx.fill(); ink(N,lw*.7);
-    } else if(K==='buddha'){
-      const base='#c08f34', dark='#6e4912';
-      const Ba=()=>{ctx.beginPath(); ctx.ellipse(0,b-hh*.1,w*.55,hh*.11,0,0,7);}; cel(Ba,base,dark,2); ink(Ba,lw);
-      const Bo=()=>{ ctx.beginPath(); ctx.moveTo(-w*.45,b-hh*.12); ctx.quadraticCurveTo(-w*.5,-hh*.1,-w*.16,-hh*.16); ctx.lineTo(w*.16,-hh*.16); ctx.quadraticCurveTo(w*.5,-hh*.1,w*.45,b-hh*.12); ctx.closePath(); };
-      cel(Bo,base,dark,k); hatch(Bo,0,-hh*.1,w*.5,b,4); ink(Bo,lw);
-      ctx.strokeStyle=dark; ctx.lineWidth=lw*.6; ctx.beginPath(); ctx.moveTo(-w*.3,b-hh*.2); ctx.quadraticCurveTo(0,b-hh*.38,w*.3,b-hh*.2); ctx.stroke();
-      const He=()=>{ctx.beginPath(); ctx.arc(0,-hh*.32,w*.2,0,7);}; cel(He,base,dark,k*.7); ink(He,lw);
-      const Us=()=>{ctx.beginPath(); ctx.arc(0,-hh*.53,w*.08,0,7);}; cel(Us,base,dark,1.5); ink(Us,lw*.8);
-      ctx.strokeStyle=INK; ctx.lineWidth=lw*.6; for(const sx of [-1,1]){ ctx.beginPath(); ctx.arc(sx*w*.07,-hh*.32,w*.04,.15*Math.PI,.85*Math.PI); ctx.stroke(); }
-      hl(-w*.08,-hh*.42,w*.05,hh*.03); hl(-w*.25,-hh*.02,w*.05,hh*.08,.3);
     } else if(K==='apple'){
       const P=()=>{ ctx.beginPath(); ctx.moveTo(0,-b+hh*.22); ctx.bezierCurveTo(w*.72,-b-hh*.05,w*.62,b,0,b); ctx.bezierCurveTo(-w*.62,b,-w*.72,-b-hh*.05,0,-b+hh*.22); ctx.closePath(); };
       cel(P,'#d52a1e','#7e120c',k); hatch(P,0,0,w*.6,b,4); ink(P,lw); hl(-w*.25,-hh*.15,w*.07,hh*.13,.3);

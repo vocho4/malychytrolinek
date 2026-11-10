@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+  content="width=device-width,
+           height=device-height,
+           initial-scale=1.0,
+           maximum-scale=1.0,
+           user-scalable=no">
+
+<title>Tetris</title>
+
+<!-- Fullscreen / PWA -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas {
+  background: black;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="c" width="200" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+/* ===== FULLSCREEN + PORTRAIT LOCK ===== */
+function startImmersiveMode() {
+  const el = document.documentElement;
+
+  // Fullscreen
+  if (!document.fullscreenElement) {
+    if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+    if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }
+
+  // Portrait lock
+  if (screen.orientation && screen.orientation.lock) {
+    try {
+      screen.orientation.lock("portrait");
+    } catch (e) {}
+  }
+}
+
+let immersiveStarted = false;
+canvas.addEventListener("touchstart", () => {
+  if (!immersiveStarted) {
+    immersiveStarted = true;
+    startImmersiveMode();
+  }
+}, { passive: true });
+
+/* ===== SCALE ===== */
+function scaleCanvas() {
+  const scale = Math.min(
+    window.innerWidth / canvas.width,
+    window.innerHeight / canvas.height
+  );
+  canvas.style.width = canvas.width * scale + "px";
+  canvas.style.height = canvas.height * scale + "px";
+}
+window.addEventListener("resize", scaleCanvas);
+scaleCanvas();
+
+/* ===== GAME DATA ===== */
+const COLS = 10, ROWS = 20, SIZE = 20;
+const board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+
+const pieces = [
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,0,1],[1,1,1]]
+];
+
+function newPiece() {
+  return {
+    shape: pieces[Math.random() * pieces.length | 0],
+    x: 3,
+    y: 0
+  };
+}
+
+let piece = newPiece();
+
+/* ===== LOGIC ===== */
+function rotate(shape) {
+  return shape[0].map((_, i) =>
+    shape.map(r => r[i]).reverse()
+  );
+}
+
+function collide(p) {
+  return p.shape.some((row, y) =>
+    row.some((v, x) => {
+      if (!v) return false;
+      const nx = p.x + x;
+      const ny = p.y + y;
+      return nx < 0 || nx >= COLS || ny >= ROWS || board[ny]?.[nx];
+    })
+  );
+}
+
+function merge() {
+  piece.shape.forEach((row, y) =>
+    row.forEach((v, x) => {
+      if (v) board[piece.y + y][piece.x + x] = 1;
+    })
+  );
+}
+
+function vibrateShort() {
+  if (navigator.vibrate) navigator.vibrate(40);
+}
+
+function clearLines() {
+  for (let y = ROWS - 1; y >= 0; y--) {
+    if (board[y].every(v => v)) {
+      board.splice(y, 1);
+      board.unshift(Array(COLS).fill(0));
+      vibrateShort();
+      y++;
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+
+  board.forEach((row, y) =>
+    row.forEach((v, x) => {
+      if (v) ctx.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
+    })
+  );
+
+  piece.shape.forEach((row, y) =>
+    row.forEach((v, x) => {
+      if (v) ctx.fillRect(
+        (piece.x + x) * SIZE,
+        (piece.y + y) * SIZE,
+        SIZE, SIZE
+      );
+    })
+  );
+}
+
+function stepDown() {
+  piece.y++;
+  if (collide(piece)) {
+    piece.y--;
+    merge();
+    clearLines();
+    piece = newPiece();
+    if (collide(piece)) board.forEach(r => r.fill(0));
+  }
+  draw();
+}
+
+/* ===== SPEED ===== */
+let normalSpeed = 700;
+let fastSpeed = 50;
+let interval = setInterval(stepDown, normalSpeed);
+
+function setSpeed(ms) {
+  clearInterval(interval);
+  interval = setInterval(stepDown, ms);
+}
+
+/* ===== TOUCH CONTROLS ===== */
+let startX = 0, startY = 0;
+let isHolding = false;
+let holdTimer = null;
+const HOLD_DELAY = 200;
+
+canvas.addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  startX = t.clientX;
+  startY = t.clientY;
+
+  holdTimer = setTimeout(() => {
+    isHolding = true;
+    setSpeed(fastSpeed);
+  }, HOLD_DELAY);
+});
+
+canvas.addEventListener("touchend", e => {
+  clearTimeout(holdTimer);
+
+  if (isHolding) {
+    isHolding = false;
+    setSpeed(normalSpeed);
+    return;
+  }
+
+  const t = e.changedTouches[0];
+  const dx = t.clientX - startX;
+  const dy = t.clientY - startY;
+
+  // TAP = ROTACE
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    const old = piece.shape;
+    piece.shape = rotate(piece.shape);
+    if (collide(piece)) piece.shape = old;
+  }
+  // SWIPE L/R = POHYB
+  else if (Math.abs(dx) > Math.abs(dy)) {
+    piece.x += dx > 0 ? 1 : -1;
+    if (collide(piece)) piece.x += dx > 0 ? -1 : 1;
+  }
+
+  draw();
+});
+
+/* ===== KEYBOARD ===== */
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft")  { piece.x--; if (collide(piece)) piece.x++; }
+  if (e.key === "ArrowRight") { piece.x++; if (collide(piece)) piece.x--; }
+  if (e.key === "ArrowDown")  stepDown();
+  if (e.key === "ArrowUp") {
+    const old = piece.shape;
+    piece.shape = rotate(piece.shape);
+    if (collide(piece)) piece.shape = old;
+  }
+  draw();
+});
+
+draw();
+</script>
+
+</body>
+</html>

@@ -381,7 +381,7 @@ function matchUI(ex,check,done){
 }
 /* ---------- hra: běhačka s otázkami (styl tuš + červený javor) ---------- */
 const SAM={img:new Image(), w:182/239}; SAM.img.src='img/samurai.png';
-const KIDIMG={}; for(const n of ['jachym','nikola','matej']){ KIDIMG[n]=new Image(); KIDIMG[n].src='img/'+n+'.png'; }
+const KIDIMG={}; for(const n of ['jachym','nikola','matej','edita']){ KIDIMG[n]=new Image(); KIDIMG[n].src='img/'+n+'.png'; }
 const RISERS=['jachym','nikola'];
 function runUI(ex, onDone){
   const cv = h('canvas',{'aria-label':'Hra: malý samuraj běží sám, klepnutím skáče'});
@@ -426,9 +426,9 @@ function runUI(ex, onDone){
     tnt:{w:.62,h:.66,monster:false}, sushi:{w:.78,h:.42,monster:false}, buddha:{w:.6,h:.72,monster:false},
     apple:{w:.55,h:.58,monster:false}, bowl:{w:.8,h:.5,monster:false},
     oni:{w:.7,h:.8,monster:true}, chomp:{w:.66,h:.66,monster:true}, robot:{w:.6,h:.78,monster:true},
-    jachym:{w:.99,h:1.16,monster:false}, nikola:{w:.92,h:1.16,monster:false}, matej:{w:.8,h:.92,monster:false}
+    jachym:{w:.99,h:1.16,monster:false}, nikola:{w:.92,h:1.16,monster:false}, matej:{w:.8,h:.92,monster:false}, edita:{w:.84,h:.84,monster:false}
   };
-  const KLIST=['case','poop','blob','ball','tnt','sushi','buddha','apple','bowl','oni','chomp','robot','jachym','nikola','matej','jachym','nikola','matej'];
+  const KLIST=['case','poop','blob','ball','tnt','sushi','buddha','apple','bowl','oni','chomp','robot','jachym','nikola','matej','jachym','nikola','matej','edita','edita'];
   function spawn(){
     const k = KLIST[Math.floor(Math.random()*KLIST.length)], K=KINDS[k];
     obs.push({k, x:W+S, w:S*K.w*.5, h:S*K.h*.5, m:K.monster, ph:Math.random()*6, lift:0});
@@ -446,14 +446,14 @@ function runUI(ex, onDone){
     for(const o of obs){
       if(o.fly){ o.x+=o.vx*dt; o.y+=o.vy*dt; o.vy+=grav*.5*dt; o.rot+=dt*14; continue; }
       o.x -= speed*dt;
-      o.lift = o.k==='ball' ? Math.abs(Math.sin(T*4+o.ph))*S*.18 : 0;
+      o.lift = o.k==='ball' ? Math.abs(Math.sin(T*4+o.ph))*S*.18 : o.k==='edita' ? Math.abs(Math.sin(T*3.2+o.ph))*S*.3 : 0;
       if(RISERS.includes(o.k)){ const d=o.x-px(); o.rise=Math.max(0,Math.min(1,(W*.9-d)/(W*.35))); }
       const ol=o.x-o.w/2+o.w*.18, or=o.x+o.w/2-o.w*.18, obot=G-o.lift, otop=obot-o.h*.85*(RISERS.includes(o.k)?o.rise:1);
       if(!o.hit && or>pl && ol<pr && P.y>otop && ptop<obot && !(RISERS.includes(o.k)&&o.rise<.3)){
         o.hit=true;
         if(o.m){ o.fly=true; o.y=obot-o.h/2; o.vx=speed*1.8; o.vy=-S*7; o.rot=0; P.kick=.35; burst(o.x,o.y,14);
           bubble={t:'Padej vorle!', until:performance.now()+1300}; }
-        else { P.vy=-jumpV*.9; P.air=true; bubble={t:o.k==='poop'?'Fuj!':KIDIMG[o.k]?'Brácho, uhni!':'Au!', until:performance.now()+900}; }
+        else { P.vy=-jumpV*.9; P.air=true; bubble={t:o.k==='poop'?'Fuj!':o.k==='edita'?'Edito, pozor!':KIDIMG[o.k]?'Brácho, uhni!':'Au!', until:performance.now()+900}; }
       }
       if(!o.done && (o.fly || o.x+o.w/2 < pl)){ o.done=true; passed++; cnt.textContent='●'.repeat(passed)+'○'.repeat(3-passed); if(passed>=3) setTimeout(ask,250); }
     }
@@ -594,6 +594,7 @@ function runUI(ex, onDone){
       const im=KIDIMG[o.k];
       if(im.complete&&im.naturalWidth){
         if(RISERS.includes(o.k)){ ctx.beginPath(); ctx.rect(-w,-hh*2,w*2,b+S*.05+hh*2); ctx.clip(); ctx.drawImage(im,-w/2,b-hh*o.rise,w,hh); }
+        else if(o.k==='edita'){ const sq=o.lift<S*.03?.9:1; ctx.save(); ctx.translate(0,o.lift); ctx.fillStyle='rgba(0,0,0,'+(.3-o.lift/S*.5)+')'; ctx.beginPath(); ctx.ellipse(0,b,w*.4*(1-o.lift/S),hh*.05,0,0,7); ctx.fill(); ctx.restore(); ctx.scale(1/sq,sq); ctx.drawImage(im,-w/2,-hh/2+(1-sq)*hh/2,w,hh); }
         else { ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0,b,w*.45,hh*.06,0,0,7); ctx.fill(); ctx.rotate(-dist/(w/2)); ctx.drawImage(im,-w/2,-hh/2,w,hh); }
       }
       ctx.restore(); return;

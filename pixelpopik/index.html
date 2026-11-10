@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PixelPopík</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0d0d;font-family:'Courier New',monospace;color:#eee;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+
+/* ── Splash ── */
+#splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:50;cursor:pointer;background:#0d0d0d;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+.pxl-title{font-weight:900;letter-spacing:0;line-height:1.1;text-shadow:3px 3px 0 #000;text-align:center;font-size:min(calc((100vw - 16px) / 3.0), 28vh)}
+.pxl-row{display:block;white-space:nowrap}
+.pxl-row:nth-child(1) span:nth-child(1){color:#ff4444}
+.pxl-row:nth-child(1) span:nth-child(2){color:#ff8844}
+.pxl-row:nth-child(1) span:nth-child(3){color:#ffee44}
+.pxl-row:nth-child(1) span:nth-child(4){color:#44ee44}
+.pxl-row:nth-child(1) span:nth-child(5){color:#44eeff}
+.pxl-row:nth-child(2) span:nth-child(1){color:#4488ff}
+.pxl-row:nth-child(2) span:nth-child(2){color:#aa44ff}
+.pxl-row:nth-child(2) span:nth-child(3){color:#ff44aa}
+.pxl-row:nth-child(2) span:nth-child(4){color:#ff6688}
+.pxl-row:nth-child(2) span:nth-child(5){color:#44ffaa}
+.subtitle{color:#666;font-size:.85rem;letter-spacing:1px;text-align:center;padding:0 16px}
+.start-hint{color:#555;font-size:1rem;animation:blink 1.2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── Game ── */
+#game{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+#hud{display:flex;justify-content:space-around;width:100%;max-width:380px;padding:8px 12px 4px}
+.hblock{text-align:center}
+.hlabel{color:#666;font-size:.65rem;text-transform:uppercase;letter-spacing:.07em}
+.hval{color:#fff;font-size:1.1rem;font-weight:bold;line-height:1.2}
+#wrap{position:relative;margin-top:4px}
+canvas{display:block;touch-action:none}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.75);font-size:1.5rem;font-weight:bold;text-align:center;padding:20px;white-space:pre-line;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .18s;border-radius:8px}
+#overlay.on{opacity:1;pointer-events:auto}
+#overlay .sub{font-size:.85rem;color:#aaa;margin-top:10px;font-weight:normal}
+</style>
+</head>
+<body>
+
+<div id="splash" onclick="startGame()">
+  <div class="pxl-title">
+    <div class="pxl-row" id="pxl-r1"><span>P</span><span>i</span><span>x</span><span>e</span><span>l</span></div>
+    <div class="pxl-row"><span>P</span><span>o</span><span>p</span><span>í</span><span>k</span></div>
+  </div>
+  <div class="subtitle">vytvořili Máťa, Jáša, Niky + VK</div>
+  <div class="start-hint" id="start-hint">▶ Klepni pro start</div>
+</div>
+
+<div id="game">
+  <div id="hud">
+    <div class="hblock">
+      <div class="hlabel">Level</div>
+      <div class="hval" id="hLvl">1</div>
+    </div>
+    <div class="hblock">
+      <div class="hlabel">Čas</div>
+      <div class="hval" id="hTimer">0s</div>
+    </div>
+    <div class="hblock">
+      <div class="hlabel">Skóre</div>
+      <div class="hval" id="hScore">0</div>
+    </div>
+    <div class="hblock">
+      <div class="hlabel">Životy</div>
+      <div class="hval" id="hLives">❤ 10</div>
+    </div>
+  </div>
+  <div id="wrap">
+    <canvas id="c"></canvas>
+    <div id="overlay"></div>
+  </div>
+</div>
+
+<script>
+// ── Audio ──────────────────────────────────────────────────────────────
+let AC=null;
+function getAC(){
+  if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+
+function sndClick(){
+  // Kuřátko: roztomilé "píp" — krátký sinusoid s rychlým portamentem nahoru
+  const a=getAC(),t=a.currentTime;
+  const o=a.createOscillator(),gn=a.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(2200,t);
+  o.frequency.exponentialRampToValueAtTime(3400,t+.04);
+  o.frequency.exponentialRampToValueAtTime(2800,t+.09);
+  gn.gain.setValueAtTime(0,t);
+  gn.gain.linearRampToValueAtTime(.35,t+.008);
+  gn.gain.exponentialRampToValueAtTime(.001,t+.12);
+  o.connect(gn); gn.connect(a.destination);
+  o.start(t); o.stop(t+.13);
+}
+
+function sndBoom(){
+  // Výbuch: klesající sinus + šum
+  const a=getAC(),t=a.currentTime;
+  const o=a.createOscillator(),gn=a.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(90,t);
+  o.frequency.exponentialRampToValueAtTime(18,t+.55);
+  gn.gain.setValueAtTime(1,t);
+  gn.gain.exponentialRampToValueAtTime(.001,t+.65);
+  o.connect(gn); gn.connect(a.destination);
+  o.start(t); o.stop(t+.65);
+  const buf=a.createBuffer(1,Math.floor(a.sampleRate*.45),a.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
+  const ns=a.createBufferSource(); ns.buffer=buf;
+  const ng=a.createGain(); ng.gain.value=.55;
+  ns.connect(ng); ng.connect(a.destination);
+  ns.start(t);
+}
+
+function sndMystery(){
+  // Záhada: rychlé arpeggio C-E-G-C
+  const a=getAC(),t=a.currentTime;
+  [261.63,329.63,392,523.25].forEach((fr,i)=>{
+    const o=a.createOscillator(),gn=a.createGain();
+    o.type='triangle'; o.frequency.value=fr;
+    gn.gain.setValueAtTime(0,t+i*.09);
+    gn.gain.linearRampToValueAtTime(.35,t+i*.09+.025);
+    gn.gain.exponentialRampToValueAtTime(.001,t+i*.09+.2);
+    o.connect(gn); gn.connect(a.destination);
+    o.start(t+i*.09); o.stop(t+i*.09+.22);
+  });
+}
+
+function sndUpsik(){
+  // Upsík: stoupající „boing" s vibratem
+  const a=getAC(),t=a.currentTime;
+  const o=a.createOscillator(),gn=a.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(180,t);
+  o.frequency.exponentialRampToValueAtTime(920,t+.13);
+  o.frequency.exponentialRampToValueAtTime(660,t+.25);
+  gn.gain.setValueAtTime(.65,t);
+  gn.gain.exponentialRampToValueAtTime(.001,t+.32);
+  const lfo=a.createOscillator(),lfoG=a.createGain();
+  lfo.frequency.value=14; lfoG.gain.value=28;
+  lfo.connect(lfoG); lfoG.connect(o.frequency);
+  lfo.start(t+.1); lfo.stop(t+.32);
+  o.connect(gn); gn.connect(a.destination);
+  o.start(t); o.stop(t+.33);
+}
+
+// ── Cell types ─────────────────────────────────────────────────────────
+const B=0, R=1, G=2, BL=3, Y=4;
+
+const FILL  ={[B]:'#1c1c1c',[R]:'#c42000',[G]:'#18a84a',[BL]:'#1a6ecc',[Y]:'#ccaa00'};
+const BORDER={[B]:'#282828',[R]:'#ff4422',[G]:'#2edb65',[BL]:'#44aaff',[Y]:'#ffdd44'};
+
+// ── Grid ───────────────────────────────────────────────────────────────
+const COLS=4, ROWS=10, GAP=5;
+
+// ── State ──────────────────────────────────────────────────────────────
+let score=0, lives=10, level=1;
+let grid=[], movingPieces=[];
+let active=false, raf=null;
+let cellSz=0, logW=0, logH=0;
+let greenMoveTs=0, redMoveTs=0, swapTs=0;
+let levelStartTime=0, timerSec=0;
+let levelCfg={moveMs:0,redMoveMs:0,swapMs:0,blinkEnabled:false};
+
+// Blink state
+let hiddenRed=null, hiddenAt=0, nextHideTs=0;
+const BLINK_MS=2000, BLINK_PAUSE=400;
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+
+// ── Resize ─────────────────────────────────────────────────────────────
+function resize(){
+  const dpr=window.devicePixelRatio||1;
+  const maxW=Math.min(window.innerWidth-8,340);
+  const maxH=window.innerHeight-90;
+  const szW=Math.floor((maxW-GAP*(COLS+1))/COLS);
+  const szH=Math.floor((maxH-GAP*(ROWS+1))/ROWS);
+  cellSz=Math.min(szW,szH,100);
+  logW=COLS*cellSz+GAP*(COLS+1);
+  logH=ROWS*cellSz+GAP*(ROWS+1);
+  canvas.width=logW*dpr; canvas.height=logH*dpr;
+  canvas.style.width=logW+'px'; canvas.style.height=logH+'px';
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+}
+
+// ── Drawing ────────────────────────────────────────────────────────────
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+function draw(){
+  ctx.fillStyle='#181818'; ctx.fillRect(0,0,logW,logH);
+  for(let row=0;row<ROWS;row++){
+    for(let col=0;col<COLS;col++){
+      const raw=grid[row][col];
+      const t=isHiddenRed(row,col)?B:raw;
+      const x=GAP+col*(cellSz+GAP), y=GAP+row*(cellSz+GAP);
+      ctx.fillStyle=FILL[t]; rr(x,y,cellSz,cellSz,9); ctx.fill();
+      if(t!==B){
+        ctx.strokeStyle=BORDER[t]; ctx.lineWidth=2.5;
+        rr(x+1.25,y+1.25,cellSz-2.5,cellSz-2.5,8); ctx.stroke();
+        if(t===G||t===BL||t===Y){
+          ctx.fillStyle=t===G?'rgba(46,219,101,.09)':t===BL?'rgba(68,170,255,.1)':'rgba(255,221,68,.1)';
+          rr(x+4,y+4,cellSz-8,cellSz-8,6); ctx.fill();
+        }
+      }
+    }
+  }
+}
+
+// ── Grid helpers ───────────────────────────────────────────────────────
+const emptyGrid=()=>Array.from({length:ROWS},()=>Array(COLS).fill(B));
+
+function cellAt(cx,cy){
+  const rect=canvas.getBoundingClientRect();
+  const x=cx-rect.left, y=cy-rect.top;
+  const col=Math.floor((x-GAP)/(cellSz+GAP));
+  const row=Math.floor((y-GAP)/(cellSz+GAP));
+  if(row<0||row>=ROWS||col<0||col>=COLS) return null;
+  const ex=GAP+col*(cellSz+GAP), ey=GAP+row*(cellSz+GAP);
+  if(x<ex||x>ex+cellSz||y<ey||y>ey+cellSz) return null;
+  return {row,col};
+}
+
+function countClickable(){
+  return grid.reduce((n,r)=>n+r.filter(v=>v===G||v===BL||v===Y).length,0);
+}
+
+// ── HUD ────────────────────────────────────────────────────────────────
+function updateHUD(){
+  document.getElementById('hLvl').textContent=level;
+  document.getElementById('hTimer').textContent=timerSec+'s';
+  document.getElementById('hScore').textContent=score;
+  document.getElementById('hLives').textContent='❤ '+lives;
+}
+
+// ── Overlay ────────────────────────────────────────────────────────────
+const OVL=document.getElementById('overlay');
+function showOvl(main,sub,cb){
+  OVL.innerHTML=`<span>${main}</span>`+(sub?`<span class="sub">${sub}</span>`:'');
+  OVL.classList.add('on');
+  if(cb){
+    const h=e=>{
+      if(e.type==='touchend') e.preventDefault();
+      OVL.removeEventListener('click',h);
+      OVL.removeEventListener('touchend',h);
+      cb();
+    };
+    OVL.addEventListener('click',h);
+    OVL.addEventListener('touchend',h,{passive:false});
+  }
+}
+function hideOvl(){OVL.classList.remove('on')}
+
+// ── Blink ─────────────────────────────────────────────────────────────
+function isHiddenRed(row,col){
+  return hiddenRed!==null&&hiddenRed.row===row&&hiddenRed.col===col;
+}
+function updateBlink(ts){
+  if(hiddenRed===null){
+    if(ts<nextHideTs) return;
+    const reds=[];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(grid[r][c]===R) reds.push({row:r,col:c});
+    if(!reds.length) return;
+    hiddenRed=reds[Math.floor(Math.random()*reds.length)];
+    hiddenAt=ts;
+  } else if(ts-hiddenAt>BLINK_MS){
+    hiddenRed=null; nextHideTs=ts+BLINK_PAUSE;
+  }
+}
+
+// ── Movement ───────────────────────────────────────────────────────────
+function stepMovingType(type){
+  const mine=movingPieces.filter(p=>p.type===type);
+  mine.forEach(p=>{if(grid[p.row][p.col]===type) grid[p.row][p.col]=B});
+  const taken=new Set();
+  mine.forEach(p=>{
+    const nr=(p.row+p.dr+ROWS)%ROWS;
+    const nc=(p.col+p.dc+COLS)%COLS;
+    const key=`${nr},${nc}`;
+    const blocked=grid[nr][nc]!==B||taken.has(key);
+    if(!blocked){p.row=nr;p.col=nc;taken.add(key);}
+    else taken.add(`${p.row},${p.col}`);
+  });
+  mine.forEach(p=>{grid[p.row][p.col]=type});
+}
+
+// ── Swap (color flip green↔red) ────────────────────────────────────────
+function doSwap(){
+  const gs=[],rs=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(grid[r][c]===G) gs.push({row:r,col:c});
+    if(grid[r][c]===R) rs.push({row:r,col:c});
+  }
+  if(!gs.length||!rs.length) return;
+  const gp=gs[Math.floor(Math.random()*gs.length)];
+  const pi=movingPieces.findIndex(p=>p.row===gp.row&&p.col===gp.col);
+  if(pi!==-1) movingPieces.splice(pi,1);
+  grid[gp.row][gp.col]=R;
+  const eligible=rs.filter(p=>!(p.row===gp.row&&p.col===gp.col));
+  if(!eligible.length) return;
+  const rp=eligible[Math.floor(Math.random()*eligible.length)];
+  grid[rp.row][rp.col]=G;
+  if(levelCfg.moveMs>0){
+    const dir=pick(levelCfg.dirs);
+    movingPieces.push({row:rp.row,col:rp.col,type:G,dr:dir.dr,dc:dir.dc});
+  }
+}
+
+// ── Level generation ───────────────────────────────────────────────────
+const DIR_DOWN  ={dr:1,dc:0};
+const DIR_UP    ={dr:-1,dc:0};
+const DIR_RIGHT ={dr:0,dc:1};
+const DIR_LEFT  ={dr:0,dc:-1};
+const DIR_DR    ={dr:1,dc:1};
+const DIR_DL    ={dr:1,dc:-1};
+const DIR_UR    ={dr:-1,dc:1};
+const DIR_UL    ={dr:-1,dc:-1};
+
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+function availDirs(n){
+  const d=[DIR_DOWN];
+  if(n>=5)  d.push(DIR_UP);
+  if(n>=8)  d.push(DIR_RIGHT,DIR_LEFT);
+  if(n>=14) d.push(DIR_DR,DIR_DL);
+  if(n>=18) d.push(DIR_UR,DIR_UL);
+  return d;
+}
+
+// ── Shared random placement helper ────────────────────────────────────
+function randomPlacement(counts, moving, dirs){
+  // counts: [{type, n, isMoving}]
+  const g=emptyGrid(), pieces=[], used=new Set();
+  function place(type,mv){
+    for(let i=0;i<80;i++){
+      const row=Math.floor(Math.random()*ROWS);
+      const col=Math.floor(Math.random()*COLS);
+      const k=`${row},${col}`;
+      if(!used.has(k)){
+        used.add(k); g[row][col]=type;
+        if(mv){ const d=pick(dirs); pieces.push({row,col,type,dr:d.dr,dc:d.dc}); }
+        return;
+      }
+    }
+  }
+  counts.forEach(({type,n,mv})=>{ for(let i=0;i<n;i++) place(type,mv); });
+  return {g,pieces};
+}
+
+// ── Hardcoded levels 1–3 ───────────────────────────────────────────────
+function makeLevel1(){
+  const {g,pieces}=randomPlacement([{type:G,n:1,mv:false}],[],[DIR_DOWN]);
+  return {grid:g,pieces,moveMs:0,redMoveMs:0,swapMs:0,blinkEnabled:false,dirs:[DIR_DOWN]};
+}
+function makeLevel2(){
+  const {g,pieces}=randomPlacement([{type:G,n:3,mv:false}],[],[DIR_DOWN]);
+  return {grid:g,pieces,moveMs:0,redMoveMs:0,swapMs:0,blinkEnabled:false,dirs:[DIR_DOWN]};
+}
+function makeLevel3(){
+  // 1 statická zelená + 3 pohybující se zelené (dolů)
+  const dirs=[DIR_DOWN];
+  const {g,pieces}=randomPlacement([
+    {type:G,n:1,mv:false},
+    {type:G,n:3,mv:true},
+  ],dirs,dirs);
+  return {grid:g,pieces,moveMs:1600,redMoveMs:0,swapMs:0,blinkEnabled:false,dirs};
+}
+
+// ── Generated levels 4+ ────────────────────────────────────────────────
+function generateLevel(n){
+  if(n===1) return makeLevel1();
+  if(n===2) return makeLevel2();
+  if(n===3) return makeLevel3();
+
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  const dirs=availDirs(n);
+
+  // Greens
+  const maxG=n<=10?Math.min(2+Math.floor(n*.45),5):Math.min(5+Math.floor((n-10)*.4),10);
+  const numG=rnd(Math.max(1,maxG-1),maxG);
+  // Červené: zdvojnásobené, od l15 postupně ubývají ve prospěch BY
+  const baseR=n<4?0:n<6?2:n<9?4:n<12?6:Math.min((4+Math.floor((n-12)/3))*2,18);
+  const redCut=n>=15?Math.min(Math.floor((n-12)/2),Math.floor(baseR/2)):0;
+  const numR=baseR-redCut;
+  // Modré/žluté: od levelu 12 min 2, od 15 absorbují ubývající červené
+  const numBY=n>=12?Math.max(2,redCut+Math.floor((n-12)*.35)):0;
+
+  // Speed — steeper ramp from level 20
+  const baseMs=Math.max(300,2000-n*48);
+  const extraMs=n>20?(n-20)*22:0;
+  const moveMs=Math.max(300,baseMs-extraMs);
+  const redMoveMs=n>=35?Math.max(480,moveMs+350):0;
+  const swapMs=n>=10&&n%5===0?3000:0;
+  const blinkEnabled=n>=5&&n%4===1;
+
+  const {g,pieces}=randomPlacement([
+    {type:G, n:numG, mv:moveMs>0},
+    {type:R, n:numR, mv:redMoveMs>0},
+    ...Array.from({length:numBY},()=>({type:Math.random()<.5?BL:Y, n:1, mv:false})),
+  ],dirs,dirs);
+
+  return {grid:g,pieces,moveMs,redMoveMs,swapMs,blinkEnabled,dirs};
+}
+
+// ── Game loop ──────────────────────────────────────────────────────────
+function loop(ts){
+  if(!active) return;
+
+  if(levelCfg.moveMs>0&&ts-greenMoveTs>levelCfg.moveMs){
+    greenMoveTs=ts; stepMovingType(G);
+  }
+  if(levelCfg.redMoveMs>0&&ts-redMoveTs>levelCfg.redMoveMs){
+    redMoveTs=ts; stepMovingType(R);
+  }
+  if(levelCfg.swapMs>0&&ts-swapTs>levelCfg.swapMs){
+    swapTs=ts; doSwap();
+  }
+  if(levelCfg.blinkEnabled) updateBlink(ts);
+
+  // Timer
+  const elapsed=Math.floor((performance.now()-levelStartTime)/1000);
+  if(elapsed!==timerSec){timerSec=elapsed;updateHUD();}
+
+  draw();
+  raf=requestAnimationFrame(loop);
+}
+
+// ── Input ──────────────────────────────────────────────────────────────
+function tap(cx,cy){
+  if(!active) return;
+  const cell=cellAt(cx,cy);
+  if(!cell) return;
+  const {row,col}=cell;
+  const v=grid[row][col];
+
+  if(v===G){
+    sndClick();
+    const pi=movingPieces.findIndex(p=>p.row===row&&p.col===col);
+    if(pi!==-1) movingPieces.splice(pi,1);
+    grid[row][col]=B; score++; updateHUD();
+    if(countClickable()===0) onLevelDone();
+  } else if(v===BL){
+    sndUpsik();
+    grid[row][col]=Math.random()<.5?G:R;
+    if(countClickable()===0) onLevelDone();
+  } else if(v===Y){
+    sndMystery();
+    grid[row][col]=Math.random()<.5?G:R;
+    if(countClickable()===0) onLevelDone();
+  } else if(v===R&&!isHiddenRed(row,col)){
+    sndBoom();
+    lives=Math.max(0,lives-1); updateHUD();
+    pulse('#c42000');
+    if(lives===0) onGameOver();
+  }
+}
+
+canvas.addEventListener('click',e=>tap(e.clientX,e.clientY));
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  tap(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+},{passive:false});
+
+// ── Visual pulse ───────────────────────────────────────────────────────
+function pulse(color){
+  canvas.style.outline=`4px solid ${color}`;
+  canvas.style.outlineOffset='-4px';
+  setTimeout(()=>{canvas.style.outline='';canvas.style.outlineOffset='';},220);
+}
+
+// ── Level flow ─────────────────────────────────────────────────────────
+// ── Uložení / načtení postupu ──────────────────────────────────────────
+function saveProgress(){
+  localStorage.setItem('ppk_level', level);
+  localStorage.setItem('ppk_score', score);
+}
+
+function loadProgress(){
+  return {
+    level: Math.max(1, parseInt(localStorage.getItem('ppk_level'))||1),
+    score: Math.max(0, parseInt(localStorage.getItem('ppk_score'))||0),
+  };
+}
+
+function clearProgress(){
+  localStorage.removeItem('ppk_level');
+  localStorage.removeItem('ppk_score');
+}
+
+// ── Level flow ─────────────────────────────────────────────────────────
+function onLevelDone(){
+  active=false; cancelAnimationFrame(raf);
+  pulse('#2edb65');
+  showOvl(`Level ${level} ✓`,'Pokračuj…');
+  setTimeout(()=>{
+    hideOvl(); level++;
+    saveProgress();
+    startLevel();
+  },1300);
+}
+
+function onGameOver(){
+  active=false; cancelAnimationFrame(raf);
+  clearProgress();
+  showOvl('Game Over',`Skóre: ${score}  Level: ${level}\nKlepni pro restart`,()=>{
+    score=0;lives=10;level=1;
+    hideOvl();updateHUD();startLevel();
+  });
+}
+
+function startLevel(){
+  cancelAnimationFrame(raf); active=false;
+  levelCfg=generateLevel(level);
+  grid=levelCfg.grid;
+  movingPieces=levelCfg.pieces.map(p=>({...p}));
+  greenMoveTs=0;redMoveTs=0;swapTs=0;
+  hiddenRed=null;hiddenAt=0;nextHideTs=0;
+  timerSec=0;
+  updateHUD(); draw();
+  showOvl(`Level ${level}`);
+  setTimeout(()=>{
+    hideOvl();
+    active=true;
+    levelStartTime=performance.now();
+    raf=requestAnimationFrame(loop);
+  },1000);
+}
+
+// ── Splash ─────────────────────────────────────────────────────────────
+function startGame(){
+  const p=loadProgress();
+  level=p.level; score=p.score; lives=10;
+  const splash=document.getElementById('splash');
+  splash.classList.add('hide');
+  const game=document.getElementById('game');
+  game.style.display='flex';
+  resize();
+  startLevel();
+  setTimeout(()=>splash.remove(),600);
+}
+
+// Ukáž uložený level na splash obrazovce
+(function(){
+  const p=loadProgress();
+  const hint=document.getElementById('start-hint');
+  if(!hint) return;
+  if(p.level>1){
+    hint.textContent=`▶ Pokračovat od levelu ${p.level}`;
+  }
+})();
+
+document.getElementById('splash').addEventListener('click',startGame);
+document.getElementById('splash').addEventListener('touchend',e=>{e.preventDefault();startGame();},{passive:false});
+
+// ── Init ───────────────────────────────────────────────────────────────
+resize();
+window.addEventListener('resize',()=>{resize();if(!active) draw();});
+</script>
+</body>
+</html>

@@ -60,7 +60,11 @@ button{font:inherit;color:inherit;cursor:pointer}
 .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .list{display:flex;flex-direction:column;gap:8px}
 .item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-width:0}
-.item[disabled]{opacity:.55;cursor:default}
+.item[disabled]{opacity:.45;filter:grayscale(1);cursor:default}
+.item.open{background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 6px 18px rgba(42,63,168,.3)}
+.item.open .t span{color:inherit;opacity:.85}
+.item.open .badge{background:var(--on-accent);color:var(--accent)}
+.item.open .pill{background:var(--on-accent);color:var(--accent)}
 .badge{font-family:var(--f-kana);font-size:1.3rem;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--accent);flex:none}
 .item .t{flex:1;min-width:0}
 .item .t b{display:block;overflow-wrap:anywhere}
@@ -245,7 +249,7 @@ function home(){
   mount(nodes);
 }
 const lbl = l => l.bonus ? 'Bonus · japonština' : 'Angličtina · lekce '+l.day;
-function unlocked(l){ return state.kid==='Vláďa' || (l.open!==false && l.date<=today()); }
+function unlocked(l){ return l.open!==false && l.date<=today(); }
 function todayView(s){
   const open = state.lessons.filter(unlocked);
   const cur = open.length ? open[open.length-1] : null;
@@ -266,17 +270,14 @@ function todayView(s){
 }
 function lessonItem(l,s){
   const ok = unlocked(l); const b = s.best[l.id];
-  return h('button',{class:'item',disabled:!ok,onclick:()=>ok&&startLesson(l)},
+  return h('button',{class:'item'+(ok?' open':''),disabled:!ok,onclick:()=>ok&&startLesson(l)},
     h('span',{class:'badge'},l.lang==='ja'?'あ':'Aa'),
-    h('span',{class:'t'},h('b',{},l.title),h('span',{},ok?lbl(l)+(l.open===false?' · jen pro tátu':''):'Brzy se odemkne')),
-    b?h('span',{class:'pill good'},b.score+'/'+b.total):h('span',{class:'pill'},ok?'nová':'zamčeno'));
+    h('span',{class:'t'},h('b',{},l.title),h('span',{},ok?lbl(l):lbl(l)+' · brzy')),
+    b?h('span',{class:'pill good'},b.score+'/'+b.total):h('span',{class:'pill'},ok?'Začít':'zamčeno'));
 }
 function lessonList(s){
   const main = state.lessons.filter(l=>!l.bonus), bonus = state.lessons.filter(l=>l.bonus);
-  const next = main.find(l=>unlocked(l)&&!s.best[l.id]);
   return h('div',{class:'wrap'},
-    next?h('div',{class:'card today'},h('span',{class:'eyebrow'},'Další lekce'),h('h2',{},next.title),h('p',{},next.hook||''),
-      h('button',{class:'btn',onclick:()=>startLesson(next)},'Začít')):null,
     h('div',{class:'list'},main.map(l=>lessonItem(l,s))),
     bonus.length?h('h2',{},'Bonus: japonské znaky'):null,
     bonus.length?h('p',{class:'note'},'Až budeš chtít něco navíc. Anglická lekce je důležitější.'):null,

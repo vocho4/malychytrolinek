@@ -135,7 +135,7 @@ const LS = {
   get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
-const state = {kid:LS.get('dojo.kid',null), lessons:[], remote:[], loaded:false, sync:'local', tab:'today', error:null};
+const state = {kid:LS.get('dojo.kid',null), lessons:[], remote:[], loaded:false, sync:'local', tab:'lessons', error:null};
 const app = document.getElementById('app');
 
 function h(tag, props, ...kids){
@@ -195,7 +195,7 @@ async function load(){
   try{
     const idx = await (await fetch('lessons/index.json?v='+Date.now())).json();
     const ls = await Promise.all(idx.map(f=>fetch('lessons/'+f+'?v='+Date.now()).then(r=>r.json())));
-    state.lessons = ls.sort((a,b)=>a.day-b.day);
+    state.lessons = ls.sort((a,b)=>(!!a.bonus-!!b.bonus)||a.day-b.day);
   }catch(e){ state.error='lessons'; }
   if (remote.on()){
     try{
@@ -229,7 +229,7 @@ function topbar(){
 function home(){
   const s = perKid(state.kid);
   const nodes = [topbar()];
-  nodes.push(h('div',{class:'tabs',role:'tablist'}, [['today','Dnes'],['lessons','Lekce'],['history','Historie']].map(([k,t])=>
+  nodes.push(h('div',{class:'tabs',role:'tablist'}, [['lessons','Lekce'],['history','Historie']].map(([k,t])=>
     h('button',{role:'tab','aria-selected':String(state.tab===k),onclick:()=>{state.tab=k;render();}},t))));
   nodes.push(h('div',{class:'stats'},
     h('div',{class:'stat'},h('b',{},s.streak),h('span',{},'dní v řadě')),
@@ -238,13 +238,13 @@ function home(){
   if(!state.loaded) nodes.push(h('p',{class:'note'},'Načítám lekce…'));
   else if(state.error) nodes.push(h('div',{class:'card'},h('h2',{},'Lekce se nenačetly'),h('p',{},'Zkus stránku obnovit. Když to nepomůže, napiš tátovi.')));
   else if(!state.lessons.length) nodes.push(h('div',{class:'card'},h('h2',{},'Zatím tu nejsou žádné lekce'),h('p',{},'První se objeví, jakmile je táta nahraje.')));
-  else if(state.tab==='today') nodes.push(...todayView(s));
   else if(state.tab==='lessons') nodes.push(lessonList(s));
   else nodes.push(...historyView(s));
   if(state.sync==='err') nodes.push(h('p',{class:'note'},'Výsledky se zatím neposlaly na server. Jsou uložené v tomto zařízení a odešlou se příště.'));
   if(!remote.on()) nodes.push(h('p',{class:'note'},'Výsledky se ukládají jen v tomto zařízení.'));
   mount(nodes);
 }
+const lbl = l => l.bonus ? 'Bonus · japonština' : 'Angličtina · lekce '+l.day;
 function unlocked(l){ return l.date<=today(); }
 function todayView(s){
   const open = state.lessons.filter(unlocked);
@@ -268,10 +268,20 @@ function lessonItem(l,s){
   const ok = unlocked(l); const b = s.best[l.id];
   return h('button',{class:'item',disabled:!ok,onclick:()=>ok&&startLesson(l)},
     h('span',{class:'badge'},l.lang==='ja'?'あ':'Aa'),
-    h('span',{class:'t'},h('b',{},l.title),h('span',{},ok?(l.lang==='ja'?'Japonština':'Angličtina')+' · den '+l.day:'Odemkne se '+l.date)),
+    h('span',{class:'t'},h('b',{},l.title),h('span',{},ok?lbl(l):'Odemkne se '+l.date)),
     b?h('span',{class:'pill good'},b.score+'/'+b.total):h('span',{class:'pill'},ok?'nová':'zamčeno'));
 }
-function lessonList(s){ return h('div',{class:'list'},state.lessons.map(l=>lessonItem(l,s))); }
+function lessonList(s){
+  const main = state.lessons.filter(l=>!l.bonus), bonus = state.lessons.filter(l=>l.bonus);
+  const next = main.find(l=>unlocked(l)&&!s.best[l.id]);
+  return h('div',{class:'wrap'},
+    next?h('div',{class:'card today'},h('span',{class:'eyebrow'},'Další lekce'),h('h2',{},next.title),h('p',{},next.hook||''),
+      h('button',{class:'btn',onclick:()=>startLesson(next)},'Začít')):null,
+    h('div',{class:'list'},main.map(l=>lessonItem(l,s))),
+    bonus.length?h('h2',{},'Bonus: japonské znaky'):null,
+    bonus.length?h('p',{class:'note'},'Až budeš chtít něco navíc. Anglická lekce je důležitější.'):null,
+    bonus.length?h('div',{class:'list'},bonus.map(l=>lessonItem(l,s))):null);
+}
 function historyView(s){
   const title = id => (state.lessons.find(l=>l.id===id)||{title:id}).title;
   const rows = s.mine.slice().sort((a,b)=>a.ts<b.ts?1:-1).slice(0,30);
@@ -291,7 +301,7 @@ function intro(){
   const l = run.l;
   mount(
     h('div',{class:'top'},h('button',{class:'link',onclick:render},'← Zpět')),
-    h('span',{class:'eyebrow'},(l.lang==='ja'?'Japonština':'Angličtina')+' · lekce '+l.day),
+    h('span',{class:'eyebrow'},lbl(l)),
     h('h1',{},l.title),
     l.hook?h('p',{class:'hook'},l.hook):null,
     ...String(l.intro||'').split('\n\n').map(p=>h('p',{},p)),

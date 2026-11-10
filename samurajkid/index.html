@@ -136,7 +136,7 @@ const app=document.getElementById('app');
 const say=(t,l)=>{ try{ const u=new SpeechSynthesisUtterance(t); u.lang=l||'ja-JP'; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} };
 const WORDS=[
  {j:'トイレ',r:'toire',c:'záchod'},{j:'幸せ',r:'šiawase',c:'štěstí'},{j:'男の子',r:'otokonoko',c:'chlapec'},
- {j:'猫',r:'neko',c:'kočka'},{j:'犬',r:'inu',c:'pes'},{j:'食べ物',r:'tabemono',c:'jídlo'},
+ {j:'猫娘',r:'nekomusume',c:'kočkoholka'},{j:'犬',r:'inu',c:'pes'},{j:'食べ物',r:'tabemono',c:'jídlo'},
  {j:'海',r:'umi',c:'moře'},{j:'火山',r:'kazan',c:'sopka'}];
 
 function h(tag, props, ...kids){

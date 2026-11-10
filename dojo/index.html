@@ -108,7 +108,7 @@ th{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.0
 .game .hud>*{pointer-events:auto}
 .game .hbtn{background:#fbf8f0;color:#151515;box-shadow:0 0 0 2px #151515;border:0;border-radius:999px;padding:8px 14px;font-weight:700;min-height:40px}
 .game .hpill{background:#151515;color:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums}
-.game .hint{position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom,0px));text-align:center;color:#151515;font-weight:700;pointer-events:none;transition:opacity .4s}
+.game .hint{position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom,0px));text-align:center;color:#fff;text-shadow:0 1px 2px #000;font-weight:700;pointer-events:none;transition:opacity .4s}
 .game .ov{position:absolute;inset:0;background:rgba(21,21,21,.55);display:flex;align-items:flex-end;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
 .game .ov .card{width:100%;color:var(--ink)}
 .game .ov .opts{grid-template-columns:1fr}
@@ -379,6 +379,7 @@ function matchUI(ex,check,done){
   return h('div',{class:'match'},col(L,bl,o=>{sl=o;}),col(R,br,o=>{sr=o;}));
 }
 /* ---------- hra: běhačka s otázkami (styl tuš + červený javor) ---------- */
+const SAM={img:new Image(), w:182/239}; SAM.img.src='img/samurai.png';
 function runUI(ex, onDone){
   const cv = h('canvas',{'aria-label':'Hra: malý samuraj běží sám, klepnutím skáče'});
   const ctx = cv.getContext('2d');
@@ -548,8 +549,9 @@ function runUI(ex, onDone){
     // zem: posuvná dlaždice
     const tw=grC.width/(grC.height/(H-G+2)), off=dist%tw;
     ctx.drawImage(grC,-off,G-B*.02,tw,H-G+2); ctx.drawImage(grC,tw-off,G-B*.02,tw,H-G+2);
-    for(const o of obs) drawObs(o,t);
     drawKid(t);
+    drawGrass(t);
+    for(const o of obs) drawObs(o,t);
     for(const l of leaves) leaf(l.x,l.y,l.s,l.r);
     if(bubble && performance.now()<bubble.until) drawBubble(bubble.t);
   }
@@ -653,37 +655,32 @@ function runUI(ex, onDone){
     }
   }
   function drawKid(t){
-    const x=px(), y=P.y, s=S*.5, run=P.air?0:Math.sin(t/70), kick=P.kick>0;
-    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle=INK; ctx.fillStyle=INK;
-    // vlající pásek od pasu
-    for(const [len,ph,wd] of [[1,0,.05],[.8,1.3,.04]]){
-      ctx.strokeStyle=RED; ctx.lineWidth=s*wd; ctx.beginPath(); ctx.moveTo(x-s*.12,y-s*.55);
-      const L=s*.75*len*(P.air?1.15:1);
-      ctx.bezierCurveTo(x-s*.12-L*.35,y-s*.55+Math.sin(t/80+ph)*s*.08, x-s*.12-L*.7,y-s*.5+Math.sin(t/65+ph)*s*.12, x-s*.12-L,y-s*.52+Math.sin(t/55+ph)*s*.15); ctx.stroke();
+    const x=px(), hh=S*.62, ww=hh*SAM.w, bob=P.air?0:Math.sin(t/350)*S*.012;
+    const y=P.y+S*.04+bob;
+    if(SAM.img.complete && SAM.img.naturalWidth){
+      ctx.save(); if(P.air) { ctx.translate(x,y-hh/2); ctx.rotate(-.06); ctx.translate(-x,-(y-hh/2)); }
+      ctx.drawImage(SAM.img, x-ww*.45, y-hh, ww, hh); ctx.restore();
     }
-    ctx.strokeStyle=INK;
-    // meč (u boku, šikmo dozadu)
-    ctx.lineWidth=s*.035; ctx.beginPath(); ctx.moveTo(x-s*.55,y-s*.25); ctx.lineTo(x+s*.3,y-s*.55); ctx.stroke();
-    // nohy
-    ctx.lineWidth=s*.08;
-    if(kick){ ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x+s*.55,y-s*.38); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x-s*.08,y); ctx.stroke(); }
-    else if(P.air){ ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x+s*.2,y-s*.15); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x-s*.18,y-s*.08); ctx.stroke(); }
-    else { ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x+run*s*.18,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y-s*.4); ctx.lineTo(x-run*s*.18,y); ctx.stroke(); }
-    // plášť / hakama s roztřepeným okrajem
-    const sw=Math.sin(t/110)*s*.03;
-    ctx.beginPath(); ctx.moveTo(x-s*.12,y-s*.84); ctx.lineTo(x+s*.13,y-s*.84);
-    ctx.lineTo(x+s*.26+(kick?s*.08:0),y-s*.22); ctx.lineTo(x+s*.14,y-s*.27); ctx.lineTo(x+s*.05,y-s*.2);
-    ctx.lineTo(x-s*.1,y-s*.26); ctx.lineTo(x-s*.3-sw,y-s*.18); ctx.lineTo(x-s*.22,y-s*.5); ctx.closePath(); ctx.fill();
-    // ruka
-    ctx.lineWidth=s*.08; const a=P.air?-1:run;
-    ctx.beginPath(); ctx.moveTo(x+s*.04,y-s*.74); ctx.lineTo(x+s*.24,y-s*.56+a*s*.06); ctx.stroke();
-    // hlava a dlouhé vlasy
-    ctx.beginPath(); ctx.arc(x+s*.02,y-s*.9,s*.11,0,7); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x-s*.06,y-s*.9); ctx.quadraticCurveTo(x-s*.2,y-s*.75+sw,x-s*.16,y-s*.6); ctx.lineTo(x-s*.05,y-s*.75); ctx.fill();
-    // klobouk kasa
-    ctx.beginPath(); ctx.moveTo(x-s*.36,y-s*.95); ctx.lineTo(x+s*.02,y-s*1.17); ctx.lineTo(x+s*.4,y-s*.95); ctx.quadraticCurveTo(x+s*.02,y-s*.98,x-s*.36,y-s*.95); ctx.fill();
-    if(kick){ ctx.strokeStyle=RED; ctx.lineWidth=s*.05; ctx.globalAlpha=Math.max(0,P.kick/.35);
-      ctx.beginPath(); ctx.arc(x+s*.35,y-s*.45,s*.42,-1.1,.9); ctx.stroke(); ctx.globalAlpha=1; }
+    if(P.kick>0){ ctx.strokeStyle=RED; ctx.lineWidth=S*.025; ctx.lineCap='round'; ctx.globalAlpha=Math.max(0,P.kick/.35);
+      ctx.beginPath(); ctx.arc(x+S*.18,y-hh*.45,S*.22,-1.1,.9); ctx.stroke(); ctx.globalAlpha=1; }
+  }
+  /* červená tráva v popředí, kývá se ve větru */
+  function drawGrass(t){
+    const rows=Math.ceil((H-G)/(S*.07))+1, sp=Math.max(3,W/110);
+    const gust=Math.sin(t/1700)*.6+Math.sin(t/650)*.25;
+    for(let r=0;r<rows;r++){
+      const base=G+S*.04+r*S*.07, hmax=S*(r===0?.22:.16+r*.02), f=1+r*.15, off=(dist*f)%(sp*97);
+      const i0=Math.floor(dist*f/sp);
+      for(let k=-2, x=-(dist*f%sp); x<W+sp*2; k++, x+=sp){
+        const n=Math.abs(Math.sin((i0+k)*12.9898+r*78.233)*43758.5453)%1, n2=Math.abs(Math.sin((i0+k)*4.1414+r*9.1)*1531.7)%1;
+        const hgt=hmax*(r===0?(.45+.55*n):(.35+.65*n*n2+.2*n)), bend=(gust+Math.sin(t/480+(i0+k)*.37+r)*.35)*hgt*.35;
+        ctx.fillStyle = n2<.33?'#9e1d16':n2<.7?'#c8281e':'#e5392a';
+        const bx=x+n*sp, w=Math.max(1,sp*.45);
+        ctx.beginPath(); ctx.moveTo(bx-w,base); ctx.quadraticCurveTo(bx+bend*.3,base-hgt*.6,bx+bend,base-hgt); ctx.quadraticCurveTo(bx+bend*.3+w*.3,base-hgt*.55,bx+w,base); ctx.closePath(); ctx.fill();
+        if(r===0 && n>.82){ ctx.globalAlpha=.55; ctx.beginPath(); ctx.ellipse(bx+bend,base-hgt,sp*.9,hgt*.18,-.3+bend/hgt,0,7); ctx.fill(); ctx.globalAlpha=1; }
+      }
+      if(r>0){ ctx.fillStyle='#b5231a'; ctx.fillRect(0,base,W,S*.075); }
+    }
   }
   function drawBubble(txt){
     ctx.save();

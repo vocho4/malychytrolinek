@@ -6,7 +6,7 @@
  "xp": 30,
  "title": "Jídlo a nákupy: Level 2",
  "hook": "",
- "intro": "V Japonsku nakoupíš mangu, trička, pokémon karty a taky spoustu šílenosti: sushi se slizem, slimáka na talíři nebo dvě levé tenisky. A v obchodě se hodí slušné chování: pozdrav hned u dveří, peníze polož na malý tácek (nepodávej je do ruky), spropitné nedávej a na konci poděkuj.\n\nVe hře ovládáš onigiri (rýžovou kouli). Sbírej rýži a utíkej před japonskými strašáky. Když tě chytí, přijde otázka v angličtině. Směr měníš přejetím prstu po obrazovce.",
+ "intro": "V Japonsku nakoupíš mangu, trička, pokémon karty a taky spoustu šílenosti: sushi se slizem, slimáka na talíři nebo dvě levé tenisky. A v obchodě se hodí slušné chování: pozdrav hned u dveří, peníze polož na malý tácek (nepodávej je do ruky), spropitné nedávej a na konci poděkuj.\n\nVe hře ovládáš onigiri (rýžovou kouli). Sbírej bílou rýži a utíkej před hlavami Jáchyma, Nikoly, Matěje a Edity. Když do tebe hlava narazí, nafoukne se, splaskne a přijde otázka v angličtině. Po třetí otázce se v bludišti objeví dva kamenné bloky, které blokují cestu tobě i hlavám. Směr měníš přejetím prstu po obrazovce.",
  "vocab": [
   {
    "t": "How much is this?",
@@ -84,7 +84,7 @@
  "exercises": [
   {
    "t": "pac",
-   "q": "Utíkej před yókai a sbírej rýži. Když tě chytí, odpověz na otázku.",
+   "q": "Utíkej před hlavami a sbírej rýži. Když tě chytí, odpověz na otázku.",
    "qs": [
     {
      "q": "Vejdeš do obchodu a prodavač zavolá „Irasshaimase!“ (vítejte). Co zdvořile řekneš?",
@@ -179,7 +179,7 @@
    ],
    "end": {
     "title": "Obchod zvládnutý!",
-    "text": "Yókai tě nedohnali a nakoupíš jako domorodec. Zapamatuj si tuhle větu. Znamená „kolik to stojí?“:",
+    "text": "Hlavy tě nedohnaly a nakoupíš jako domorodec. Zapamatuj si tuhle větu. Znamená „kolik to stojí?“:",
     "sign": "いくらですか",
     "sr": "ikura desu ka",
     "more": "Prodavač tě u dveří přivítá slovem いらっしゃいませ (irasshaimase). Na konci řekni ありがとうございます (arigatō gozaimasu), děkuji."

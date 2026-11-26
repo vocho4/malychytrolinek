@@ -1,5 +1,6 @@
 name: Supabase keepalive
-# Jednou za pár dní pošle projektu dojo jednoduchý dotaz, aby ho Supabase nepozastavil pro neaktivitu.
+# Jednou za 3 dny zapíše do projektu dojo jeden technický řádek (kid = keepalive), aby ho Supabase nepozastavil pro neaktivitu.
+# Aplikace zobrazuje jen řádky jednotlivých dětí, takže tento řádek není vidět.
 on:
   schedule:
     - cron: '17 6 */3 * *'
@@ -9,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Dotaz na tabulku attempts
+      - name: Zápis a čtení v tabulce attempts
         run: |
           URL=$(grep -oP 'supabaseUrl:\s*"\K[^"]+' dojo/config.js)
           KEY=$(grep -oP 'supabaseKey:\s*"\K[^"]+' dojo/config.js)
-          CODE=$(curl -s -o /dev/null -w '%{http_code}' "$URL/rest/v1/attempts?select=ts&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
-          echo "Supabase odpověděl: $CODE"
-          test "$CODE" = "200"
+          W=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$URL/rest/v1/attempts" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -H "Prefer: return=minimal" \
+            -d "{\"kid\":\"keepalive\",\"lesson_id\":\"keepalive\",\"score\":0,\"total\":1,\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+          R=$(curl -s -o /dev/null -w '%{http_code}' "$URL/rest/v1/attempts?select=ts&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Zápis: $W, čtení: $R"
+          test "$W" = "201" && test "$R" = "200"

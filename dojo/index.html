@@ -45,7 +45,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tabs{display:flex;gap:4px;background:var(--soft);border-radius:12px;padding:4px}
 .tabs button{flex:1;border:0;background:none;padding:10px 6px;border-radius:9px;font-weight:700;color:var(--muted)}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:480px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
 .stat b{display:block;font-family:var(--f-display);font-size:1.6rem;font-variant-numeric:tabular-nums}
 .stat span{color:var(--muted);font-size:.85rem}
@@ -134,7 +135,7 @@ th{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.0
 <script>
 'use strict';
 const CFG = window.DOJO_CONFIG || {};
-const KIDS = ['Matěj','Jáchym','Nikola','Vláďa','Host-Guest-Testovač'];
+const KIDS = ['Matěj','Jáchym','Nikola','Edi','Vláďa','Host-Guest-Testovač'];
 const LS = {
   get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -180,17 +181,30 @@ const pending = () => LS.get('dojo.pending',[]);
 const attempts = () => [...state.remote, ...pending()];
 
 function perKid(kid){
-  const mine = attempts().filter(a=>a.kid===kid);
+  const all = attempts().filter(a=>a.kid===kid);
+  const rice = all.filter(a=>a.lesson_id==='ryze').reduce((t,a)=>t+(+a.score||0),0);
+  const mine = all.filter(a=>a.lesson_id!=='ryze' && a.lesson_id!=='keepalive');
   const best = {};
   for (const a of mine){ const p=a.total?a.score/a.total:0; const b=best[a.lesson_id]; if(!b||p>b.p) best[a.lesson_id]={p,score:a.score,total:a.total}; }
   let xp = 0;
   for (const l of state.lessons){ const b=best[l.id]; if(b) xp += Math.round((l.xp||30)*b.p); }
-  const days = new Set(mine.map(a=>ymd(new Date(a.ts))));
+  const days = new Set(all.map(a=>ymd(new Date(a.ts))));
   let streak = 0; const d = new Date();
   if(!days.has(ymd(d))) d.setDate(d.getDate()-1);
   while(days.has(ymd(d))){ streak++; d.setDate(d.getDate()-1); }
   const last = mine.reduce((m,a)=>a.ts>m?a.ts:m,'');
-  return {mine,best,xp,streak,done:Object.keys(best).length,last};
+  return {mine,best,xp,rice,streak,done:Object.keys(best).length,last};
+}
+
+const rowKey = r => r.kid+'|'+r.lesson_id+'|'+r.ts;
+async function flushPending(){
+  const p = pending(); if(!p.length || !remote.on()) return;
+  try{ await remote.add(p); const sent=new Set(p.map(rowKey)); LS.set('dojo.pending',pending().filter(r=>!sent.has(rowKey(r)))); state.remote.unshift(...p); }catch(e){}
+}
+function saveRice(n){
+  if(!state.kid || !(n>0)) return;
+  LS.set('dojo.pending',[...pending(),{kid:state.kid, lesson_id:'ryze', score:n, total:n, ts:new Date().toISOString()}]);
+  flushPending();
 }
 
 /* ---------- načtení ---------- */
@@ -238,7 +252,8 @@ function home(){
   nodes.push(h('div',{class:'stats'},
     h('div',{class:'stat'},h('b',{},s.streak),h('span',{},'dní v řadě')),
     h('div',{class:'stat'},h('b',{},s.xp),h('span',{},'bodů XP')),
-    h('div',{class:'stat'},h('b',{},s.done+'/'+state.lessons.length),h('span',{},'lekcí hotovo'))));
+    h('div',{class:'stat'},h('b',{},s.done+'/'+state.lessons.length),h('span',{},'lekcí hotovo')),
+    h('div',{class:'stat'},h('b',{},s.rice),h('span',{},'zrnek rýže'))));
   if(!state.loaded) nodes.push(h('p',{class:'note'},'Načítám lekce…'));
   else if(state.error) nodes.push(h('div',{class:'card'},h('h2',{},'Lekce se nenačetly'),h('p',{},'Zkus stránku obnovit. Když to nepomůže, napiš tátovi.')));
   else if(!state.lessons.length) nodes.push(h('div',{class:'card'},h('h2',{},'Zatím tu nejsou žádné lekce'),h('p',{},'První se objeví, jakmile je táta nahraje.')));
@@ -290,13 +305,14 @@ function historyView(s){
     rows.length?h('div',{class:'scroll'},h('table',{},h('thead',{},h('tr',{},h('th',{},'Kdy'),h('th',{},'Lekce'),h('th',{},'Body'))),
       h('tbody',{},rows.map(a=>h('tr',{},h('td',{},fmtDate(a.ts)),h('td',{},title(a.lesson_id)),h('td',{},a.score+'/'+a.total)))))):h('p',{class:'note'},'Zatím žádný pokus.'));
   const fam = h('div',{class:'card'},h('h2',{},'Přehled všech'),h('div',{class:'scroll'},h('table',{},
-    h('thead',{},h('tr',{},h('th',{},'Kdo'),h('th',{},'Hotovo'),h('th',{},'XP'),h('th',{},'Série'))),
-    h('tbody',{},KIDS.map(k=>{const p=perKid(k);return h('tr',{},h('td',{},k),h('td',{},p.done+'/'+state.lessons.length),h('td',{},p.xp),h('td',{},p.streak));})))));
+    h('thead',{},h('tr',{},h('th',{},'Kdo'),h('th',{},'Hotovo'),h('th',{},'XP'),h('th',{},'Rýže'),h('th',{},'Série'))),
+    h('tbody',{},KIDS.map(k=>{const p=perKid(k);return h('tr',{},h('td',{},k),h('td',{},p.done+'/'+state.lessons.length),h('td',{},p.xp),h('td',{},p.rice),h('td',{},p.streak));})))));
   return [mine,fam];
 }
 
 /* ---------- lekce ---------- */
 let run = null;
+const isGame = l => l.exercises.length===1 && (l.exercises[0].t==='run'||l.exercises[0].t==='pac');
 function startLesson(l){ run={l,i:-1,correct:0}; intro(); }
 function intro(){
   const l = run.l;
@@ -308,8 +324,8 @@ function intro(){
     ...String(l.intro||'').split('\n\n').map(p=>h('p',{},p)),
     (l.vocab&&l.vocab.length)?h('div',{class:'vocab'},l.vocab.map(v=>h('button',{class:'v',onclick:()=>say(v.s||v.t,v.lang)},
       h('span',{class:'t'+(l.lang==='ja'?'':' latin')},v.t),v.r?h('span',{class:'r'},v.r):null,h('span',{class:'c'},v.c)))):null,
-    (l.vocab&&l.vocab.length)?h('p',{class:'note'},'Klepnutím na kartu si poslechneš výslovnost (pokud ji zařízení umí).'):null,
-    h('button',{class:'btn primary',onclick:()=>{run.i=0;exercise();}},'Začít cvičení')
+    (l.vocab&&l.vocab.length&&!isGame(l))?h('p',{class:'note'},'Klepnutím na kartu si poslechneš výslovnost (pokud ji zařízení umí).'):null,
+    h('button',{class:'btn primary',onclick:()=>{run.i=0;exercise();}},isGame(l)?'Start hry':'Začít cvičení')
   );
 }
 function exercise(){
@@ -830,14 +846,15 @@ function pacUI(ex, onDone){
   const wall=(x,y)=>!(x>=0&&y>=0&&x<C&&y<R)||PAC_MAP[y][x]==='#';
   const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
   const PSTART=[4,11];
-  const HEADS=[['jachym','Jáchym',1,1,.7],['nikola','Nikola',7,1,.5],['matej','Matěj',3,3,.38],['edita','Edita',5,3,.28]];
+  const HEADS=[['jachym','Jáchym',1,1,.7,'#3d8bff'],['nikola','Nikola',7,1,.5,'#2ee06f'],['matej','Matěj',3,3,.38,'#ffa21a'],['edita','Edita',5,3,.28,'#ff4fd8']];
+  const rgba=(hx,a)=>'rgba('+parseInt(hx.slice(1,3),16)+','+parseInt(hx.slice(3,5),16)+','+parseInt(hx.slice(5,7),16)+','+a+')';
   const BLOCK_START=[[2,7],[6,5]];
   let W=0,H=0,T=0,ox=0,oy=0, alive=true, paused=false, last=0, raf=0, tm=0;
   let qi=0, firstTry=0, invul=0, freeze=0, speedUp=0, moving=false, shake=0, pop=null, banner=null;
-  let dots=[], left=0, want=[0,0], parts=[], blocks=[], petals=[], mazeC=null, trailT=0, blinkT=2;
+  let eaten=0, dots=[], left=0, want=[0,0], parts=[], blocks=[], petals=[], mazeC=null, trailT=0, blinkT=2;
   const mk=(x,y)=>({tx:x,ty:y,nx:x,ny:y,p:0,dx:0,dy:0});
   const pl=mk(...PSTART);
-  const gh=HEADS.map(([k,name,x,y,chase],i)=>({...mk(x,y),k,name,chase,sx:x,sy:y,ph:i*1.7}));
+  const gh=HEADS.map(([k,name,x,y,chase,col],i)=>({...mk(x,y),k,name,chase,col,sx:x,sy:y,ph:i*1.7}));
   const still=e=>e.nx===e.tx&&e.ny===e.ty;
   const onTile=(e,x,y)=>(e.tx===x&&e.ty===y)||(e.nx===x&&e.ny===y);
   const free=(x,y)=>!wall(x,y)&&!blocks.some(b=>onTile(b,x,y));
@@ -872,7 +889,7 @@ function pacUI(ex, onDone){
   }
   function newPetal(any){ return {x:Math.random()*W, y:any?Math.random()*H:-10, vx:-8-Math.random()*14, vy:12+Math.random()*16, r:Math.random()*6, vr:(Math.random()-.5)*2, s:3+Math.random()*4}; }
   size(); window.addEventListener('resize',size); fill();
-  const upd=()=>{ cnt.textContent='rýže: '+left; }; upd();
+  const upd=()=>{ cnt.textContent='rýže: '+eaten; }; upd();
 
   /* ovládání: přejetí prstem, šipky */
   let sx=0, sy=0, down=false;
@@ -884,7 +901,7 @@ function pacUI(ex, onDone){
   const keyMap={ArrowRight:[1,0],ArrowLeft:[-1,0],ArrowDown:[0,1],ArrowUp:[0,-1]};
   const key=e=>{ if(keyMap[e.key]){ e.preventDefault(); pacAudio(); want=keyMap[e.key]; hint.style.opacity=0; } };
   window.addEventListener('keydown',key);
-  function stop(){ alive=false; cancelAnimationFrame(raf); window.removeEventListener('resize',size); window.removeEventListener('keydown',key); document.body.style.overflow=''; }
+  function stop(){ alive=false; cancelAnimationFrame(raf); window.removeEventListener('resize',size); window.removeEventListener('keydown',key); document.body.style.overflow=''; if(eaten>0){ saveRice(eaten); eaten=0; } }
 
   /* částice */
   function burst(x,y,n,col,sp,size,kind){ for(let i=0;i<n;i++){ const a=Math.random()*6.283, v=sp*(.35+Math.random()*.8);
@@ -910,7 +927,7 @@ function pacUI(ex, onDone){
       if(free(e.tx+e.dx,e.ty+e.dy)){ e.nx=e.tx+e.dx; e.ny=e.ty+e.dy; } else { e.nx=e.tx; e.ny=e.ty; e.p=0; e.dx=0; e.dy=0; moving=false; break; }
     }
   }
-  function eat(x,y){ if(!dots[y][x]) return; dots[y][x]=false; left--; upd(); pacPip();
+  function eat(x,y){ if(!dots[y][x]) return; dots[y][x]=false; left--; eaten++; upd(); pacPip();
     burst(X(x),Y(y),7,'#fffdf5',T*2.6,T*.07);
     if(left<=0){ speedUp+=.07; fill(); upd(); banner={t:1.8,max:1.8,txt:'Nová rýže!'}; } }
   function pick(g){
@@ -1011,7 +1028,8 @@ function pacUI(ex, onDone){
     const im=KIDIMG[g.k], hh=T*1.22;
     ctx.save(); ctx.globalAlpha=a; ctx.translate(x,y); ctx.rotate(rot);
     if(aura){ const pr=hh*(.7+.06*Math.sin(tm*5+g.ph)); const rg=ctx.createRadialGradient(0,0,hh*.2,0,0,pr);
-      rg.addColorStop(0,'rgba(200,40,30,.45)'); rg.addColorStop(1,'rgba(200,40,30,0)'); ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,0,pr,0,7); ctx.fill(); }
+      rg.addColorStop(0,rgba(g.col,.55)); rg.addColorStop(1,rgba(g.col,0)); ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(0,0,pr,0,7); ctx.fill();
+      ctx.strokeStyle=g.col; ctx.lineWidth=Math.max(2,T*.07); ctx.shadowColor=g.col; ctx.shadowBlur=T*.3; ctx.beginPath(); ctx.arc(0,hh*.02,hh*.5,0,7); ctx.stroke(); ctx.shadowBlur=0; }
     ctx.scale(sx,sy);
     if(im&&im.complete&&im.naturalWidth){ const w=hh*im.naturalWidth/im.naturalHeight; ctx.drawImage(im,-w/2,-hh/2,w,hh); }
     else { ctx.fillStyle='#e0b090'; ctx.beginPath(); ctx.arc(0,0,hh*.45,0,7); ctx.fill(); }
@@ -1020,7 +1038,7 @@ function pacUI(ex, onDone){
   function drawGhost(g){
     if(pop&&pop.g===g) return;
     const [gx,gy]=pos(g), bob=Math.sin(tm*6+g.ph)*T*.05, sq=Math.sin(tm*9+g.ph)*.04;
-    ctx.fillStyle='rgba(0,0,0,.5)'; ctx.beginPath(); ctx.ellipse(X(gx),Y(gy)+T*.5,T*.38,T*.1,0,0,7); ctx.fill();
+    ctx.fillStyle=rgba(g.col,.35); ctx.beginPath(); ctx.ellipse(X(gx),Y(gy)+T*.55,T*.4,T*.1,0,0,7); ctx.fill();
     drawHead(g,X(gx),Y(gy)+bob,1+sq,1-sq,Math.sin(tm*4+g.ph)*.12+g.dx*.15,1,true);
   }
   function drawBlock(b){

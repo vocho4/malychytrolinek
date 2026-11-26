@@ -1,0 +1,189 @@
+{
+ "id": "l008",
+ "day": 2,
+ "date": "2026-11-08",
+ "lang": "en",
+ "xp": 30,
+ "title": "Jídlo a nákupy: Level 2",
+ "hook": "",
+ "intro": "V Japonsku nakoupíš mangu, trička, pokémon karty a taky spoustu šílenosti: sushi se slizem, slimáka na talíři nebo dvě levé tenisky. A v obchodě se hodí slušné chování: pozdrav hned u dveří, peníze polož na malý tácek (nepodávej je do ruky), spropitné nedávej a na konci poděkuj.\n\nVe hře ovládáš onigiri (rýžovou kouli). Sbírej rýži a utíkej před japonskými strašáky. Když tě chytí, přijde otázka v angličtině. Směr měníš přejetím prstu po obrazovce.",
+ "vocab": [
+  {
+   "t": "How much is this?",
+   "r": "",
+   "c": "kolik to stojí?",
+   "lang": "en-US"
+  },
+  {
+   "t": "Do you have …?",
+   "r": "",
+   "c": "máte …?",
+   "lang": "en-US"
+  },
+  {
+   "t": "slimy",
+   "r": "",
+   "c": "slizký",
+   "lang": "en-US"
+  },
+  {
+   "t": "snail",
+   "r": "",
+   "c": "šnek, slimák",
+   "lang": "en-US"
+  },
+  {
+   "t": "manga",
+   "r": "",
+   "c": "manga",
+   "lang": "en-US"
+  },
+  {
+   "t": "T-shirt",
+   "r": "",
+   "c": "tričko",
+   "lang": "en-US"
+  },
+  {
+   "t": "size",
+   "r": "",
+   "c": "velikost",
+   "lang": "en-US"
+  },
+  {
+   "t": "card",
+   "r": "",
+   "c": "karta, platební karta",
+   "lang": "en-US"
+  },
+  {
+   "t": "rare",
+   "r": "",
+   "c": "vzácný",
+   "lang": "en-US"
+  },
+  {
+   "t": "left",
+   "r": "",
+   "c": "levý, vlevo",
+   "lang": "en-US"
+  },
+  {
+   "t": "Can I pay by card?",
+   "r": "",
+   "c": "můžu platit kartou?",
+   "lang": "en-US"
+  },
+  {
+   "t": "Thank you",
+   "r": "",
+   "c": "děkuji",
+   "lang": "en-US"
+  }
+ ],
+ "exercises": [
+  {
+   "t": "pac",
+   "q": "Utíkej před yókai a sbírej rýži. Když tě chytí, odpověz na otázku.",
+   "qs": [
+    {
+     "q": "Vejdeš do obchodu a prodavač zavolá „Irasshaimase!“ (vítejte). Co zdvořile řekneš?",
+     "o": [
+      "Hello! Good morning!",
+      "Give me money!",
+      "Goodbye, snail!"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Na talíři je sushi se slizem. Co se zeptáš?",
+     "o": [
+      "What is this? Is it slimy?",
+      "Where is this slime toilet?",
+      "I am slimy, you are sushi."
+     ],
+     "a": 0
+    },
+    {
+     "q": "V sushi baru se plazí slimák. Co si objednáš?",
+     "o": [
+      "Without the snail, please.",
+      "With two snails, toilet.",
+      "I snail you, sushi."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Chceš koupit mangu. Na co se zeptáš?",
+     "o": [
+      "How much is this manga?",
+      "How many is this manga mother?",
+      "Manga price is where toilet?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Hledáš pokémon karty. Co řekneš prodavači?",
+     "o": [
+      "Do you have Pokemon cards?",
+      "You have Pokemon cards me?",
+      "Pokemon cards do you eat?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Vidíš kartu Pikachu za 20 000 jenů. Co se zeptáš?",
+     "o": [
+      "Is this card rare?",
+      "Is this card hairy?",
+      "This card is toilet?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "V obchodě s tričky hledáš svou velikost.",
+     "o": [
+      "Do you have this T-shirt in size M?",
+      "I have T-shirt in your size M mother?",
+      "Size M is where T-shirt?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "V obchodě stojí dvě tenisky, obě jsou levé. Co zvoláš?",
+     "o": [
+      "These are two left sneakers!",
+      "These are two left elephants!",
+      "Two sneakers are one left!"
+     ],
+     "a": 0
+    },
+    {
+     "q": "U pokladny chceš zaplatit kartou. Co řekneš?",
+     "o": [
+      "Can I pay by card?",
+      "Can I pay by snail?",
+      "Can I card by pay?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Odcházíš z obchodu. Jak se slušně rozloučíš?",
+     "o": [
+      "Thank you very much! Have a nice day!",
+      "I give you thanks, you are cash!",
+      "Goodbye, give me change!"
+     ],
+     "a": 0
+    }
+   ],
+   "end": {
+    "title": "Obchod zvládnutý!",
+    "text": "Yókai tě nedohnali a nakoupíš jako domorodec. Zapamatuj si tuhle větu. Znamená „kolik to stojí?“:",
+    "sign": "いくらですか",
+    "sr": "ikura desu ka",
+    "more": "Prodavač tě u dveří přivítá slovem いらっしゃいませ (irasshaimase). Na konci řekni ありがとうございます (arigatō gozaimasu), děkuji."
+   }
+  }
+ ]
+}

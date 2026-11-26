@@ -1147,7 +1147,7 @@ function pacUI(ex, onDone){
     stage.append(ov);
     // hlava se usadí nad bublinu a zvětší se podle volného místa
     const sr=stage.getBoundingClientRect(), top=bub.getBoundingClientRect().top-sr.top-34, room=top-66;
-    const hh=T*1.22; pop.hs=Math.max(1.6,Math.min(3.4,room*.88/hh)); pop.cx=W/2; pop.cy=66+room/2;
+    const hh=T*1.22; pop.hs=Math.max(1.6,Math.min(3.2,room*.9/hh)); pop.cx=W/2; pop.cy=top-hh*pop.hs*.5+6;
   }
   function end(){
     paused=true; const e=ex.end||{};

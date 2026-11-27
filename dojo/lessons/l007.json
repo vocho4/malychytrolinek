@@ -1,48 +1,53 @@
 {
  "id": "l007",
- "open": false,
  "day": 3,
  "date": "2026-11-08",
  "lang": "en",
  "xp": 30,
- "title": "Základy: pozdravy a představení",
- "hook": "Každá hra začíná tutoriálem. Tohle je tutoriál angličtiny: pozdravit, představit se a poděkovat.",
- "intro": "Dnes se naučíš věty, které použiješ úplně všude, na letišti, v obchodě i při hraní online. Slova z kartiček si můžeš nechat přečíst. Zkus si je říkat nahlas.",
+ "title": "Seznamování: Level 3",
+ "hook": "",
+ "intro": "Odrážej hlavy, rozbíjej cihly a nauč se pozdravit a představit japonským kamarádům.",
  "vocab": [
   {
-   "t": "Hello",
+   "t": "Hello!",
    "r": "",
-   "c": "ahoj, dobrý den",
+   "c": "ahoj",
    "lang": "en-US"
   },
   {
-   "t": "Goodbye",
+   "t": "Nice to meet you",
    "r": "",
-   "c": "na shledanou",
-   "lang": "en-US"
-  },
-  {
-   "t": "Please",
-   "r": "",
-   "c": "prosím",
-   "lang": "en-US"
-  },
-  {
-   "t": "Thank you",
-   "r": "",
-   "c": "děkuji",
-   "lang": "en-US"
-  },
-  {
-   "t": "Sorry",
-   "r": "",
-   "c": "promiň",
+   "c": "rád tě poznávám",
    "lang": "en-US"
   },
   {
    "t": "My name is …",
    "r": "",
    "c": "jmenuji se …",
+   "lang": "en-US"
+  },
+  {
+   "t": "What is your name?",
+   "r": "",
+   "c": "jak se jmenuješ?",
+   "lang": "en-US"
+  },
+  {
+   "t": "I am … years old",
+   "r": "",
+   "c": "je mi … let",
+   "lang": "en-US"
+  },
+  {
+   "t": "Where are you from?",
+   "r": "",
+   "c": "odkud jsi?",
+   "lang": "en-US"
+  },
+  {
+   "t": "I am from …",
+   "r": "",
+   "c": "jsem z …",
    "lang": "en-US"
   },
   {
@@ -58,123 +63,127 @@
    "lang": "en-US"
   },
   {
-   "t": "Nice to meet you",
+   "t": "brother",
    "r": "",
-   "c": "rád tě poznávám",
+   "c": "bratr",
+   "lang": "en-US"
+  },
+  {
+   "t": "cousin",
+   "r": "",
+   "c": "sestřenice, bratranec",
+   "lang": "en-US"
+  },
+  {
+   "t": "See you later!",
+   "r": "",
+   "c": "uvidíme se!",
    "lang": "en-US"
   }
  ],
  "exercises": [
   {
-   "t": "choice",
-   "q": "Potkáš kamaráda ve hře. Co řekneš jako první?",
-   "o": [
-    "Hello!",
-    "Goodbye!",
-    "Sorry!",
-    "Please!"
+   "t": "brk",
+   "q": "Odrážej hlavy a rozbij všech 10 červených cihel.",
+   "qs": [
+    {
+     "q": "Japonský kluk tě pozdraví „Hello!“. Co odpovíš?",
+     "o": [
+      "Hi! Nice to meet you!",
+      "Hi! Nice to eat you!",
+      "Bye! Nice to meet me!"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Chceš říct, jak se jmenuješ.",
+     "o": [
+      "My name is Jáchym.",
+      "My name are Jáchym.",
+      "Me name is banana."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Chceš se zeptat, jak se jmenuje on.",
+     "o": [
+      "What is your name?",
+      "What is your banana?",
+      "Who name are you?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Ptá se, kolik ti je. Je ti třináct.",
+     "o": [
+      "I am thirteen years old.",
+      "I have thirteen years old.",
+      "I am thirteen years cold."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Ptá se, odkud jsi.",
+     "o": [
+      "I am from the Czech Republic.",
+      "I from is Czech.",
+      "I am Czech from the fridge."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Chceš se zeptat, odkud je on.",
+     "o": [
+      "Where are you from?",
+      "Where you are from toilet?",
+      "From where is you?"
+     ],
+     "a": 0
+    },
+    {
+     "q": "Řekni, že máš rád mangu a anime.",
+     "o": [
+      "I like manga and anime.",
+      "I likes manga and anime.",
+      "Me like manga anime yes."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Zeptá se „How are you?“. Co odpovíš?",
+     "o": [
+      "I am fine, thank you!",
+      "I am fried, thank you!",
+      "I fine am you thank."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Představ mu brášku Nikolu.",
+     "o": [
+      "This is my brother Nikola.",
+      "This is my brother's Nikola.",
+      "This are my brother Nikola."
+     ],
+     "a": 0
+    },
+    {
+     "q": "Odcházíš a chceš se rozloučit.",
+     "o": [
+      "See you later!",
+      "See you laser!",
+      "Look you later!"
+     ],
+     "a": 0
+    }
    ],
-   "a": 0,
-   "e": "Hello je pozdrav, který funguje pořád."
-  },
-  {
-   "t": "choice",
-   "q": "Někdo ti podá pití. Co řekneš?",
-   "o": [
-    "Thank you!",
-    "Goodbye!",
-    "How are you?",
-    "My name is Pizza."
-   ],
-   "a": 0,
-   "e": ""
-  },
-  {
-   "t": "type",
-   "q": "Doplň: My ___ is Matěj. (jmenuji se)",
-   "a": [
-    "name"
-   ],
-   "e": "My name is … = jmenuji se …"
-  },
-  {
-   "t": "choice",
-   "q": "Co znamená „How are you?“",
-   "o": [
-    "Jak se máš?",
-    "Kdo jsi?",
-    "Kolik ti je?",
-    "Kde bydlíš?"
-   ],
-   "a": 0,
-   "e": ""
-  },
-  {
-   "t": "choice",
-   "q": "Správná odpověď na „How are you?“",
-   "o": [
-    "I am fine, thank you.",
-    "My name is fine.",
-    "Goodbye, please.",
-    "Nice, sorry."
-   ],
-   "a": 0,
-   "e": ""
-  },
-  {
-   "t": "type",
-   "q": "Napiš anglicky: Děkuji.",
-   "a": [
-    "thank you",
-    "thanks"
-   ],
-   "e": "Thanks je kratší a známější."
-  },
-  {
-   "t": "choice",
-   "q": "Šlápneš někomu na nohu. Co řekneš?",
-   "o": [
-    "Sorry!",
-    "Hello!",
-    "Please!",
-    "Goodbye!"
-   ],
-   "a": 0,
-   "e": ""
-  },
-  {
-   "t": "choice",
-   "q": "Pokémon Trainer se ti představí: „Nice to meet you.“ Co to znamená?",
-   "o": [
-    "Rád tě poznávám.",
-    "Mám hlad.",
-    "Kde je záchod?",
-    "Dobrou noc."
-   ],
-   "a": 0,
-   "e": ""
-  },
-  {
-   "t": "type",
-   "q": "Napiš anglicky: Jmenuji se Nikola.",
-   "a": [
-    "my name is nikola",
-    "i am nikola",
-    "i'm nikola"
-   ],
-   "e": "Můžeš říct i I am …"
-  },
-  {
-   "t": "choice",
-   "q": "Odcházíš ze hry. Co řekneš kamarádům?",
-   "o": [
-    "Goodbye!",
-    "Hello!",
-    "Please!",
-    "Sorry, hello!"
-   ],
-   "a": 0,
-   "e": "Nebo kratší: Bye!"
+   "end": {
+    "title": "Kamarádi získáni!",
+    "text": "Všechny červené cihly jsou rozbité. Japonsky se při seznámení říká:",
+    "sign": "はじめまして",
+    "sr": "hadžimemašite",
+    "more": "Znamená „těší mě“. A pozdrav dobrý den je こんにちは (konničiwa)."
+   }
   }
  ]
 }
